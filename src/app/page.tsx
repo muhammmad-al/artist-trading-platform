@@ -1,53 +1,28 @@
 'use client'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { injected } from 'wagmi/connectors'
 import { useEffect, useState } from 'react'
+import PriceGraph from '@/components/PriceGraph'
+import WalletButton from '@/components/WalletButton'
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
-  const { address, isConnected } = useAccount()
-  const { connect } = useConnect()
-  const { disconnect } = useDisconnect()
+  console.log("Home page rendering, mounted:", mounted)
 
   useEffect(() => {
     setMounted(true)
-    console.log('Component mounted')
   }, [])
-
-  const handleConnect = async () => {
-    console.log('Connect button clicked')
-    try {
-      console.log('Attempting to connect...')
-      await connect({ connector: injected() })
-    } catch (err) {
-      console.error('Connection error:', err)
-    }
-  }
 
   if (!mounted) return null
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Artist Trading Platform</h1>
-      
-      {isConnected ? (
-        <div className="space-y-4">
-          <p>Connected to: {address?.slice(0,6)}...{address?.slice(-4)}</p>
-          <button 
-            onClick={() => disconnect()}
-            className="bg-red-500 text-white px-4 py-2 rounded"
-          >
-            Disconnect
-          </button>
+    <div className="min-h-screen bg-neutral-950">
+      <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 50 }}>
+        <WalletButton />
+      </div>
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="bg-neutral-900 rounded-lg shadow-lg border border-neutral-800 p-6 min-h-[600px]">
+          <PriceGraph />
         </div>
-      ) : (
-        <button 
-          onClick={handleConnect}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 active:bg-blue-700"
-        >
-          Connect Wallet
-        </button>
-      )}
+      </main>
     </div>
-  )
+)
 }
