@@ -1,8 +1,21 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
+require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("@typechain/hardhat");
+require("@nomicfoundation/hardhat-ethers");
 
-const config: HardhatUserConfig = {
-  solidity: "0.8.28",
+const config = {
+  solidity: "0.8.20",
+  networks: {
+    hardhat: {
+      chainId: 31337
+    }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  }
 };
 
-export default config;
+module.exports = config;
