@@ -2,20 +2,16 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ArtistTokenFactory.sol";
 
-contract ArtistTokenExchange is ReentrancyGuard {
-    // State variables
+contract ArtistTokenExchange {
     ArtistTokenFactory public factory;
-    mapping(address => uint256) public tokenLiquidity;  // token -> token amount
-    mapping(address => uint256) public ethLiquidity;    // token -> ETH amount
+    mapping(address => uint256) public tokenLiquidity;
+    mapping(address => uint256) public ethLiquidity;
     
-    // Constants
     uint256 public constant FEE_NUMERATOR = 3;
-    uint256 public constant FEE_DENOMINATOR = 1000;  // 0.3% fee
+    uint256 public constant FEE_DENOMINATOR = 1000; // 0.3% fee
     
-    // Events
     event LiquidityAdded(address indexed token, uint256 tokenAmount, uint256 ethAmount, address provider);
     event LiquidityRemoved(address indexed token, uint256 tokenAmount, uint256 ethAmount, address provider);
     event TokensPurchased(address indexed token, uint256 tokenAmount, uint256 ethAmount, address buyer);
@@ -25,17 +21,17 @@ contract ArtistTokenExchange is ReentrancyGuard {
         factory = ArtistTokenFactory(factoryAddress);
     }
     
-    // Add liquidity
-    function addLiquidity(address tokenAddress) external payable nonReentrant {
+    function addLiquidity(address tokenAddress) external payable {
         require(factory.isTokenFromFactory(tokenAddress), "Token not from factory");
-        IERC20 token = IERC20(tokenAddress);
+        require(msg.value > 0, "Must provide ETH");
         
+        IERC20 token = IERC20(tokenAddress);
         uint256 tokenAmount;
+        
         if (tokenLiquidity[tokenAddress] == 0) {
-            // First time adding liquidity
-            tokenAmount = msg.value * 1000; // Initial rate: 1 ETH = 1000 tokens
+            // Initial rate: 1 ETH = 1000 tokens (considering decimals)
+            tokenAmount = msg.value * 1000;
         } else {
-            // Match existing ratio
             tokenAmount = (msg.value * tokenLiquidity[tokenAddress]) / ethLiquidity[tokenAddress];
         }
         
@@ -47,7 +43,6 @@ contract ArtistTokenExchange is ReentrancyGuard {
         emit LiquidityAdded(tokenAddress, tokenAmount, msg.value, msg.sender);
     }
     
-    // Calculate price for buying tokens
     function getTokenPurchaseAmount(address tokenAddress, uint256 ethAmount) public view returns (uint256) {
         require(ethLiquidity[tokenAddress] > 0, "No liquidity");
         
@@ -58,14 +53,15 @@ contract ArtistTokenExchange is ReentrancyGuard {
         return numerator / denominator;
     }
     
-    // Buy tokens with ETH
-    function buyTokens(address tokenAddress, uint256 minTokens) external payable nonReentrant {
+    function buyTokens(address tokenAddress, uint256 minTokens) external payable {
+        require(msg.value > 0, "Must send ETH");
         require(factory.isTokenFromFactory(tokenAddress), "Token not from factory");
         
         uint256 tokenAmount = getTokenPurchaseAmount(tokenAddress, msg.value);
         require(tokenAmount >= minTokens, "Insufficient output amount");
         
-        IERC20(tokenAddress).transfer(msg.sender, tokenAmount);
+        IERC20 token = IERC20(tokenAddress);
+        require(token.transfer(msg.sender, tokenAmount), "Transfer failed");
         
         tokenLiquidity[tokenAddress] -= tokenAmount;
         ethLiquidity[tokenAddress] += msg.value;
@@ -73,7 +69,6 @@ contract ArtistTokenExchange is ReentrancyGuard {
         emit TokensPurchased(tokenAddress, tokenAmount, msg.value, msg.sender);
     }
     
-    // Calculate price for selling tokens
     function getEthPurchaseAmount(address tokenAddress, uint256 tokenAmount) public view returns (uint256) {
         require(tokenLiquidity[tokenAddress] > 0, "No liquidity");
         
@@ -84,14 +79,15 @@ contract ArtistTokenExchange is ReentrancyGuard {
         return numerator / denominator;
     }
     
-    // Sell tokens for ETH
-    function sellTokens(address tokenAddress, uint256 tokenAmount, uint256 minEth) external nonReentrant {
+    function sellTokens(address tokenAddress, uint256 tokenAmount, uint256 minEth) external {
+        require(tokenAmount > 0, "Must send tokens");
         require(factory.isTokenFromFactory(tokenAddress), "Token not from factory");
         
         uint256 ethAmount = getEthPurchaseAmount(tokenAddress, tokenAmount);
         require(ethAmount >= minEth, "Insufficient output amount");
         
-        require(IERC20(tokenAddress).transferFrom(msg.sender, address(this), tokenAmount), "Transfer failed");
+        IERC20 token = IERC20(tokenAddress);
+        require(token.transferFrom(msg.sender, address(this), tokenAmount), "Transfer failed");
         
         payable(msg.sender).transfer(ethAmount);
         
@@ -101,7 +97,6 @@ contract ArtistTokenExchange is ReentrancyGuard {
         emit TokensSold(tokenAddress, tokenAmount, ethAmount, msg.sender);
     }
     
-    // View functions
     function getLiquidity(address tokenAddress) external view returns (uint256 tokenAmount, uint256 ethAmount) {
         return (tokenLiquidity[tokenAddress], ethLiquidity[tokenAddress]);
     }
