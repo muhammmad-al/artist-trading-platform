@@ -33,6 +33,6 @@
     "test/**/*.ts",
     "contracts/**/*.ts",
     "ignition/**/*.ts"
-, "test/ArtistPlatform.test.js"  ],
+, "test/ArtistPlatform.test.js", "scripts/deploy.js"  ],
   "exclude": ["node_modules"]
 }
