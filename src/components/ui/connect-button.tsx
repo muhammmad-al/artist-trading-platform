@@ -1,22 +1,16 @@
-// src/components/ui/connect-button.tsx
 "use client"
+
+import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit'
 
 const ConnectButton = () => {
     return (
-        <button 
-            style={{
-                position: 'fixed',  // This ensures it stays in position regardless of scroll
-                top: '20px',       // Distance from top
-                right: '20px',     // Distance from right
-                padding: '10px 20px',
-                backgroundColor: '#333',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px'
-            }}
-        >
-            Connect
-        </button>
+        <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+        }}>
+            <RainbowConnectButton />
+        </div>
     )
 }
 
