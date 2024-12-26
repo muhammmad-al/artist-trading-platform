@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Artist-Themed Token Trading Platform
+A decentralized exchange platform that lets users create artist-themed tokens and trade them through an automated market maker (AMM) system. Built on Sepolia testnet with full Web3 integration.
 
-## Getting Started
+## What This Project Does
+The platform enables users to:
+* Create unique ERC20 tokens tied to artist profiles
+* Trade tokens through automated market making pools
+* Add and remove liquidity for different token pairs 
+* Track token prices and trading history in real-time
 
-First, run the development server:
+## Technical Stack
+### Smart Contracts
+* Solidity contracts for ERC20 token creation and AMM functionality
+* Custom ArtistTokenFactory for deploying new artist tokens
+* ArtistTokenExchange implementing constant product AMM formula
+* Contract verification and testing on Sepolia testnet
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Backend Architecture
+* Node.js/Express REST API endpoints
+* PostgreSQL database for artist profiles
+* Web3 integration using ethers.js
+* Transaction processing and blockchain state management
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Frontend Development
+* Next.js React framework with TypeScript
+* Web3 wallet integration with MetaMask
+* Real-time price and liquidity tracking
+* Responsive UI for trading interface
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Key Features
+| Component | Technology | Purpose |
+|-----------|------------|----------|
+| Smart Contracts | Solidity | Token creation & trading |
+| Backend | Node.js/Express | API & blockchain integration |
+| Frontend | Next.js | User interface & wallet connection |
+| Database | PostgreSQL | Artist profile storage |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The project combines Web3 technologies with traditional web development to create a full-stack decentralized trading platform.
