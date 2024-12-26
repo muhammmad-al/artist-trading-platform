@@ -1,4 +1,4 @@
-# Artist-Themed Memecoin Trading Platform
+# Artist-Themed Token Trading Platform
 A decentralized exchange platform that lets users create artist-themed tokens and trade them through an automated market maker (AMM) system. Built on Sepolia testnet with full Web3 integration.
 
 ## What This Project Does
