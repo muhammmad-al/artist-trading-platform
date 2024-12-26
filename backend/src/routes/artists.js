@@ -1,12 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const blockchainService = require('../../services/blockchain');
 
 // Get all artists
 router.get('/', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM artists ORDER BY created_at DESC');
-        res.json(result.rows);
+        
+        // Add blockchain data
+        const artistsWithTokens = await Promise.all(
+            result.rows.map(async (artist) => {
+                if (artist.token_address) {
+                    const tokenInfo = await blockchainService.getTokenInfo(artist.token_address);
+                    return { ...artist, tokenInfo: tokenInfo.success ? tokenInfo.info : null };
+                }
+                return artist;
+            })
+        );
+        
+        res.json(artistsWithTokens);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -20,34 +33,66 @@ router.get('/:id', async (req, res) => {
             'SELECT * FROM artists WHERE id = $1',
             [req.params.id]
         );
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Artist not found' });
         }
-        
-        res.json(result.rows[0]);
+
+        const artist = result.rows[0];
+        if (artist.token_address) {
+            const tokenInfo = await blockchainService.getTokenInfo(artist.token_address);
+            artist.tokenInfo = tokenInfo.success ? tokenInfo.info : null;
+        }
+
+        res.json(artist);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-// Create new artist
+// Create new artist with token
 router.post('/', async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, tokenSymbol, initialSupply } = req.body;
+    const client = await db.connect();
+
     try {
-        const result = await db.query(
-            'INSERT INTO artists (name, description) VALUES ($1, $2) RETURNING *',
-            [name, description]
+        await client.query('BEGIN');
+
+        // Create token on blockchain
+        const tokenResult = await blockchainService.createToken(
+            `${name} Token`,
+            tokenSymbol,
+            initialSupply
         );
-        res.json(result.rows[0]);
+
+        if (!tokenResult.success) {
+            throw new Error(`Token creation failed: ${tokenResult.error}`);
+        }
+
+        // Create artist in database
+        const result = await client.query(
+            'INSERT INTO artists (name, description, token_address) VALUES ($1, $2, $3) RETURNING *',
+            [name, description, tokenResult.tokenAddress]
+        );
+
+        await client.query('COMMIT');
+        
+        const artist = result.rows[0];
+        const tokenInfo = await blockchainService.getTokenInfo(tokenResult.tokenAddress);
+        artist.tokenInfo = tokenInfo.success ? tokenInfo.info : null;
+        
+        res.json(artist);
     } catch (err) {
-        // Check for unique violation on name
-        if (err.code === '23505') {  // PostgreSQL unique violation code
+        await client.query('ROLLBACK');
+        
+        if (err.code === '23505') {
             return res.status(400).json({ error: 'Artist name must be unique' });
         }
         console.error(err);
         res.status(500).json({ error: 'Server error' });
+    } finally {
+        client.release();
     }
 });
 
@@ -59,14 +104,19 @@ router.put('/:id', async (req, res) => {
             'UPDATE artists SET name = $1, description = $2 WHERE id = $3 RETURNING *',
             [name, description, req.params.id]
         );
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Artist not found' });
         }
-        
-        res.json(result.rows[0]);
+
+        const artist = result.rows[0];
+        if (artist.token_address) {
+            const tokenInfo = await blockchainService.getTokenInfo(artist.token_address);
+            artist.tokenInfo = tokenInfo.success ? tokenInfo.info : null;
+        }
+
+        res.json(artist);
     } catch (err) {
-        // Check for unique violation on name
         if (err.code === '23505') {
             return res.status(400).json({ error: 'Artist name must be unique' });
         }
@@ -82,11 +132,11 @@ router.delete('/:id', async (req, res) => {
             'DELETE FROM artists WHERE id = $1 RETURNING *',
             [req.params.id]
         );
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Artist not found' });
         }
-        
+
         res.json({ message: 'Artist deleted successfully' });
     } catch (err) {
         console.error(err);
