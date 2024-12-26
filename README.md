@@ -1,4 +1,4 @@
-# Artist-Themed Token Trading Platform
+# Artist-Themed Memecoin Trading Platform
 A decentralized exchange platform that lets users create artist-themed tokens and trade them through an automated market maker (AMM) system. Built on Sepolia testnet with full Web3 integration.
 
 ## What This Project Does
@@ -23,16 +23,16 @@ The platform enables users to:
 
 ### Frontend Development
 * Next.js React framework with TypeScript
-* Web3 wallet integration with MetaMask
+* RainbowKit for streamlined wallet integration
 * Real-time price and liquidity tracking
-* Responsive UI for trading interface
+* Responsive UI with Tailwind CSS
 
 ### Key Features
 | Component | Technology | Purpose |
 |-----------|------------|----------|
 | Smart Contracts | Solidity | Token creation & trading |
 | Backend | Node.js/Express | API & blockchain integration |
-| Frontend | Next.js | User interface & wallet connection |
+| Frontend | Next.js/RainbowKit | User interface & wallet connection |
 | Database | PostgreSQL | Artist profile storage |
 
 The project combines Web3 technologies with traditional web development to create a full-stack decentralized trading platform.
