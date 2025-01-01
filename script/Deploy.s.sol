@@ -8,12 +8,7 @@ contract Deploy is Script {
     function run() external {
         vm.startBroadcast();
 
-        new ArtistToken(
-            "Test Token",
-            "TEST",
-            1_000_000 ether,
-            msg.sender
-        );
+        new ArtistToken("Test Token", "TEST", 1_000_000 ether, msg.sender);
 
         vm.stopBroadcast();
     }

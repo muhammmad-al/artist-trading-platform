@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
@@ -12,12 +11,7 @@ contract ArtistTokenTest is Test {
     function setUp() public {
         owner = makeAddr("owner");
         vm.prank(owner);
-        token = new ArtistToken(
-            "Test Token",
-            "TEST",
-            1_000_000 ether,
-            owner
-        );
+        token = new ArtistToken("Test Token", "TEST", 1_000_000 ether, owner);
     }
 
     function testDeployment() public {
